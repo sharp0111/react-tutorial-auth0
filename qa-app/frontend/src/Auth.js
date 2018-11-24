@@ -33,6 +33,7 @@ class Auth {
   }
 
   signIn() {
+    console.log("signIn");
     this.auth0.authorize();
   }
 
