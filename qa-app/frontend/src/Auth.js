@@ -1,5 +1,5 @@
 import auth0 from 'auth0-js';
-import config from './config.js'
+import { config } from './config.js'
 
 class Auth {
   constructor() {
@@ -8,7 +8,7 @@ class Auth {
       domain: `${config.AUTH0_DOMAIN}`,
       audience: `https://${config.AUTH0_DOMAIN}/userinfo`,
       clientID: `${config.AUTH0_CLIENT_ID}`,
-      redirectUri: 'http://localhost:3000/callback',
+      redirectUri: `${config.CALLBACK_URL}`,
       responseType: 'id_token',
       scope: 'openid profile'
     });
@@ -29,25 +29,28 @@ class Auth {
   }
 
   isAuthenticated() {
+    // console.log(new Date().getTime() < this.expiresAt)
     return new Date().getTime() < this.expiresAt;
   }
 
   signIn() {
-    console.log("signIn");
     this.auth0.authorize();
   }
 
   handleAuthentication() {
+    // console.log('handleAuthentication')
     return new Promise((resolve, reject) => {
       this.auth0.parseHash((err, authResult) => {
         if (err) return reject(err);
         if (!authResult || !authResult.idToken) {
           return reject(err);
         }
+        console.log(authResult);
         this.idToken = authResult.idToken;
         this.profile = authResult.idTokenPayload;
         // set the time that the id token will expire at
-        this.expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
+        // this.expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
+        this.expiresAt = authResult.idTokenPayload.exp * 1000;
         resolve();
       });
     })
